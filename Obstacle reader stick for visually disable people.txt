@@ -1,0 +1,74 @@
+#define trigPin 2      // HCSR05 Trigger set to pin 3
+#define echoPin 3     // HCSR05 Echo set to pin 2
+#define trigPin2 9      // HCSR05 Trigger set to pin 3
+#define echoPin2 10     // HCSR05 Echo set to pin 2
+#define ISD_PIN 5      // ISD1820 module PE Pin
+#define DISTANCE 40    // Distance value to check in CM
+
+long duration, cm;
+long duration2, cm2;
+int buz= 8;
+void setup() 
+{ 
+  pinMode(trigPin, OUTPUT);       // Set ultrasonic sensor trigger pin as output
+  pinMode(echoPin, INPUT);        // Set ultrasonic sensor echo pin as input
+  pinMode(trigPin2, OUTPUT);       // Set ultrasonic sensor trigger pin as output
+  pinMode(echoPin2, INPUT);        // Set ultrasonic sensor echo pin as input
+  pinMode(buz, OUTPUT);
+  pinMode(ISD_PIN, OUTPUT);       // Set ISD1820 voice module pin as output
+  digitalWrite(ISD_PIN, LOW);     // Ensure ISD1820 is initially off
+
+}
+
+void loop() 
+{
+  digitalWrite(trigPin2, LOW);      
+  delayMicroseconds(2);
+  digitalWrite(trigPin2, HIGH);     
+  delayMicroseconds(10);
+  digitalWrite(trigPin2, LOW);
+  duration2 = pulseIn(echoPin2, HIGH);
+  cm2 = microsecondsToCentimeters(duration2);
+
+ 
+if(cm2<10)
+{
+  digitalWrite(buz, HIGH);
+}
+else {
+digitalWrite(buz, LOW);
+}
+
+
+
+  // Send a clean trigger pulse to the ultrasonic sensor
+  digitalWrite(trigPin, LOW);      
+  delayMicroseconds(2);
+  digitalWrite(trigPin, HIGH);     
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+
+  // Measure the duration of the echo pulse
+  duration = pulseIn(echoPin, HIGH);
+
+  // Convert the pulse duration to distance in centimeters
+  cm = microsecondsToCentimeters(duration);
+  
+  // Check if the object is within the specified range (10 cm)
+  if (cm <= DISTANCE && cm > 0)  // Ensure valid distance and within range
+  {
+    digitalWrite(ISD_PIN, HIGH);     // Activate the ISD1820 voice module
+    delay(200);                      // Allow voice module to play for 200 ms
+    digitalWrite(ISD_PIN, LOW);      // Deactivate the voice module
+    delay(4800);                     // Wait for 4.8 seconds to avoid repeated activations
+  }
+  
+  delay(100); // Small delay between loops
+}
+
+long microsecondsToCentimeters(long microseconds)
+{
+  // The speed of sound is 340 m/s or 29.1 microseconds per centimeter.
+  // We divide by 29 to convert microseconds to centimeters and then divide by 2 because of the round-trip time.
+  return microseconds / 29 / 2;
+}
